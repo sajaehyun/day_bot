@@ -97,7 +97,11 @@
           <div class="name">{{ r.name }}</div>
         </div>
         <div class="score-badge {% if r.score >= 60 %}score-high{% elif r.score >= 40 %}score-mid{% endif %}">
-          {{ r.score }}점
+          {% if r.direction %}
+<span style="font-size:0.8rem;">{{ r.direction }}</span>
+{% endif %}
+{{ r.score }}점
+
         </div>
       </div>
       <div class="{% if r.change_pct >= 0 %}change-positive{% else %}change-negative{% endif %}">

@@ -152,7 +152,7 @@ def get_market_data(symbol, session):
 
 def compute_surge_score(data):
     score = 0
-    cp = data["change_pct"]
+    cp = abs(data["change_pct"])
     vr = data["vol_ratio"]
     up = data.get("upside") or 0
     if cp >= 10:    score += 50
@@ -198,7 +198,9 @@ def run_surge_scan(session=None):
     log.info(f"[{SESSION_LABEL[session]}] 스캔 시작: {total}개")
     for i, sym in enumerate(symbols):
         data = get_market_data(sym, session)
-        if data and data["change_pct"] >= filters["change"] and data["vol_ratio"] >= filters["vol"]:
+        if data and abs(data["change_pct"]) >= filters["change"] and data["vol_ratio"] >= filters["vol"]:
+    data["direction"] = "급등 🚀" if data["change_pct"] > 0 else "급락 📉"
+
             data["score"] = compute_surge_score(data)
             results.append(data)
             log.info(f"🚀 {sym} +{data['change_pct']}% 거래량{data['vol_ratio']}배 점수{data['score']}")
