@@ -42,7 +42,7 @@ _surge_cache = {
     "last_updated": None,
     "status": "idle",
     "session": "closed",
-    "session_label": SESSION_LABEL.get("closed", "")
+    "session_label": "🔒 장 마감 (ET 20:00~24:00)"
 }
 
 @surge_bp.route("/surge/refresh", methods=["POST"])
