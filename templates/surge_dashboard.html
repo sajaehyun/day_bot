@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🚀 폭등 스캐너</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0d1117; color: #e6edf3; font-family: "Segoe UI", sans-serif; padding: 20px; }
+    h1 { text-align: center; font-size: 1.8rem; margin-bottom: 6px; }
+    .subtitle { text-align: center; color: #8b949e; font-size: 0.9rem; margin-bottom: 16px; }
+    .session-badge { text-align: center; margin-bottom: 16px; }
+    .badge { display: inline-block; padding: 6px 18px; border-radius: 20px; font-size: 0.9rem; font-weight: 700; }
+    .badge-pre    { background: #1f3a5f; color: #79c0ff; }
+    .badge-day    { background: #1a3a1a; color: #3fb950; }
+    .badge-after  { background: #3a2a1a; color: #ffa657; }
+    .badge-night  { background: #2a1a3a; color: #d2a8ff; }
+    .badge-closed { background: #21262d; color: #8b949e; }
+    .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+    .btn-auto  { background: #238636; color: #fff; }
+    .btn-auto:hover { background: #2ea043; }
+    .btn-night { background: #2a1a3a; color: #d2a8ff; border: 1px solid #8957e5; }
+    .btn-pre   { background: #1f3a5f; color: #79c0ff; border: 1px solid #1f6feb; }
+    .btn-day   { background: #1a3a1a; color: #3fb950; border: 1px solid #238636; }
+    .btn-after { background: #3a2a1a; color: #ffa657; border: 1px solid #9e6a03; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status-bar { text-align: center; color: #8b949e; font-size: 0.85rem; margin-bottom: 20px; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #444; border-top-color: #58a6ff; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-2px); border-color: #58a6ff; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .symbol { font-size: 1.2rem; font-weight: 700; color: #58a6ff; }
+    .name { font-size: 0.8rem; color: #8b949e; margin-top: 2px; }
+    .score-badge { border-radius: 20px; padding: 4px 12px; font-size: 0.85rem; font-weight: 700; background: #1f6feb; color: #fff; }
+    .score-high { background: #238636; }
+    .score-mid  { background: #9e6a03; }
+    .change-positive { color: #3fb950; font-size: 1.5rem; font-weight: 700; }
+    .change-negative { color: #f85149; font-size: 1.5rem; font-weight: 700; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+    .metric { background: #0d1117; border-radius: 8px; padding: 8px 10px; }
+    .metric-label { font-size: 0.72rem; color: #8b949e; margin-bottom: 2px; }
+    .metric-value { font-size: 0.95rem; font-weight: 600; }
+    .news { background: #0d1117; border-radius: 8px; padding: 8px 10px; margin-top: 4px; font-size: 0.8rem; color: #8b949e; line-height: 1.4; }
+    .news span { color: #e6edf3; }
+    .sector-tag { display: inline-block; background: #21262d; color: #8b949e; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; margin-top: 8px; }
+    .empty { text-align: center; color: #8b949e; padding: 60px 0; font-size: 1.1rem; grid-column: 1/-1; }
+    .upside-positive { color: #3fb950; }
+    .upside-negative { color: #f85149; }
+    .kst-time { text-align: center; color: #58a6ff; font-size: 0.85rem; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<h1>🚀 폭등 스캐너</h1>
+<p class="subtitle">S&amp;P 500 + SOXL 반도체 | 야간 / 프리 / 데이 / 애프터마켓 자동 감지</p>
+
+<div class="kst-time" id="kstTime"></div>
+
+<div class="session-badge">
+  {% if current_session %}
+    <span class="badge
+      {% if '야간' in current_session %}badge-night
+      {% elif '프리' in current_session %}badge-pre
+      {% elif '데이' in current_session %}badge-day
+      {% elif '애프터' in current_session %}badge-after
+      {% else %}badge-closed{% endif %}">
+      {{ current_session }}
+    </span>
+  {% endif %}
+</div>
+
+<div class="controls">
+  <button class="btn btn-auto"  id="refreshBtn" onclick="startScan(null)">🔍 자동 감지</button>
+  <button class="btn btn-night" onclick="startScan('night')">🌙 야간거래</button>
+  <button class="btn btn-pre"   onclick="startScan('pre')">🌅 프리마켓</button>
+  <button class="btn btn-day"   onclick="startScan('day')">📈 데이마켓</button>
+  <button class="btn btn-after" onclick="startScan('after')">🌙 애프터마켓</button>
+</div>
+
+<div class="status-bar" id="statusBar">
+  {% if last_updated %}
+    {{ session_label }} | 마지막 업데이트: {{ last_updated }} | {{ results|length }}종목 감지
+  {% else %}
+    아직 스캔 전입니다. 스캔 버튼을 눌러주세요.
+  {% endif %}
+</div>
+
+<div class="grid" id="cardGrid">
+  {% if results %}
+    {% for r in results %}
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="symbol">{{ r.symbol }}</div>
+          <div class="name">{{ r.name }}</div>
+        </div>
+        <div class="score-badge {% if r.score >= 60 %}score-high{% elif r.score >= 40 %}score-mid{% endif %}">
+          {{ r.score }}점
+        </div>
+      </div>
+      <div class="{% if r.change_pct >= 0 %}change-positive{% else %}change-negative{% endif %}">
+        {{ "+" if r.change_pct >= 0 else "" }}{{ r.change_pct }}%
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">💰 현재가</div>
+          <div class="metric-value">${{ r.cur_price }}</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">📊 거래량 배율</div>
+          <div class="metric-value">{{ r.vol_ratio }}배</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">🎯 목표가</div>
+          <div class="metric-value">{% if r.target_price %}${{ r.target_price }}{% else %}N/A{% endif %}</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">🚀 업사이드</div>
+          <div class="metric-value {% if r.upside and r.upside > 0 %}upside-positive{% else %}upside-negative{% endif %}">
+            {% if r.upside %}+{{ r.upside }}%{% else %}N/A{% endif %}
+          </div>
+        </div>
+      </div>
+      {% if r.latest_news %}
+      <div class="news">📰 <span>{{ r.latest_news[:80] }}</span></div>
+      {% endif %}
+      {% if r.sector %}
+      <span class="sector-tag">{{ r.sector }}</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty">
+      🔍 감지된 폭등 종목이 없습니다.<br>
+      <small>장 시간에 맞는 버튼을 눌러 스캔하세요.</small>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  function updateKST() {
+    const now = new Date();
+    const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const str = kst.toISOString().replace("T", " ").slice(0, 19);
+    document.getElementById("kstTime").textContent = "🇰🇷 현재 한국 시간: " + str + " KST";
+  }
+  updateKST();
+  setInterval(updateKST, 1000);
+
+  function startScan(session) {
+    const btn = document.getElementById("refreshBtn");
+    const bar = document.getElementById("statusBar");
+    btn.disabled = true;
+    bar.innerHTML = "<span class='spinner'></span> 스캔 중... (약 3~5분 소요)";
+    fetch("/surge/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session: session })
+    })
+    .then(() => pollStatus())
+    .catch(e => {
+      bar.textContent = "오류: " + e;
+      btn.disabled = false;
+    });
+  }
+
+  function pollStatus() {
+    fetch("/surge/status")
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === "done") {
+          location.reload();
+        } else if (data.status === "error") {
+          document.getElementById("statusBar").textContent = "❌ 스캔 오류";
+          document.getElementById("refreshBtn").disabled = false;
+        } else {
+          setTimeout(pollStatus, 5000);
+        }
+      });
+  }
+</script>
+</body>
+</html>
