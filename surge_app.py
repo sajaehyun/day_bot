@@ -14,7 +14,13 @@ surge_bp = Blueprint("surge", __name__)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-_surge_cache = {"results": [], "last_updated": None, "status": "idle", "session": "closed", "session_label": ""}
+_surge_cache = {
+    "results": [],
+    "last_updated": None,
+    "status": "idle",
+    "session": "closed",
+    "session_label": "🔒 장 마감 (ET 20:00~24:00)"
+}
 _lock = threading.Lock()
 
 def _run_and_cache(session=None):
@@ -37,14 +43,6 @@ def _run_and_cache(session=None):
         with _lock:
             _surge_cache["status"] = "error"
 
-_surge_cache = {
-    "results": [],
-    "last_updated": None,
-    "status": "idle",
-    "session": "closed",
-    "session_label": "🔒 장 마감 (ET 20:00~24:00)"
-}
-
 @surge_bp.route("/surge/refresh", methods=["POST"])
 def surge_refresh():
     session = request.json.get("session") if request.json else None
@@ -55,6 +53,18 @@ def surge_refresh():
 def surge_status():
     with _lock:
         return jsonify(_surge_cache)
+
+@surge_bp.route("/surge")
+def surge_page():
+    with _lock:
+        data = _surge_cache.copy()
+    return render_template(
+        "surge.html",
+        results=data["results"],
+        last_updated=data["last_updated"],
+        session_label=data["session_label"],
+        current_session=data["session_label"]
+    )
 
 def init_surge_scheduler():
     scheduler = BackgroundScheduler(timezone="America/New_York")
