@@ -187,7 +187,6 @@ def send_telegram_surge_alert(results, token, chat_id, session="day"):
         msg = "\n".join(lines)
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     requests.post(url, json={"chat_id": chat_id, "text": msg}, timeout=10)
-
 def run_surge_scan(session=None):
     if session is None:
         session = get_market_session()
@@ -199,11 +198,10 @@ def run_surge_scan(session=None):
     for i, sym in enumerate(symbols):
         data = get_market_data(sym, session)
         if data and abs(data["change_pct"]) >= filters["change"] and data["vol_ratio"] >= filters["vol"]:
-    data["direction"] = "급등 🚀" if data["change_pct"] > 0 else "급락 📉"
-
+            data["direction"] = "급등 🚀" if data["change_pct"] > 0 else "급락 📉"
             data["score"] = compute_surge_score(data)
             results.append(data)
-            log.info(f"🚀 {sym} +{data['change_pct']}% 거래량{data['vol_ratio']}배 점수{data['score']}")
+            log.info(f"{data['direction']} {sym} {data['change_pct']:+.2f}% 거래량{data['vol_ratio']}배 점수{data['score']}")
         if (i + 1) % 50 == 0:
             log.info(f"진행: {i+1}/{total}")
         time.sleep(0.05)
