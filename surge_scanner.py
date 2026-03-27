@@ -29,21 +29,21 @@ SP500_FALLBACK = [
 ]
 
 SESSION_LABEL = {
-    "night":  {"change": 1.0, "vol": 0.3},   # 야간: 조건 대폭 완화    
+    "night":  "🌙 야간거래 (ET 00:00~04:00)",
     "pre":    "🌅 프리마켓 (ET 04:00~09:30)",
     "day":    "📈 데이마켓 (ET 09:30~16:00)",
     "after":  "🌙 애프터마켓 (ET 16:00~20:00)",
     "closed": "🔒 장 마감 (ET 20:00~04:00)",
 }
 
+
 SESSION_FILTER = {
-    "night":  {"change": 1.5, "vol": 1.5},
-    "pre":    {"change": 2.0, "vol": 1.5},
+    "night":  {"change": 1.0, "vol": 0.3},
+    "pre":    {"change": 1.0, "vol": 0.5},    # 2.0 → 1.0, 1.5 → 0.5
     "day":    {"change": 1.5, "vol": 1.5},
-    "after":  {"change": 1.5, "vol": 1.3},
+    "after":  {"change": 1.0, "vol": 0.5},    # 완화
     "closed": {"change": 2.0, "vol": 1.5},
 }
-
 
 def get_market_session():
     et = pytz.timezone("America/New_York")

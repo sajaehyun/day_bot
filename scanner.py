@@ -46,43 +46,43 @@ def analyze_next_day(ticker):
         loss = (-delta).clip(lower=0).ewm(alpha=1/14, adjust=False).mean()
         lg, ll = safe_float(gain.iloc[-1]), safe_float(loss.iloc[-1])
         rsi = round(100 - 100/(1+lg/ll), 1) if ll > 0 else (100.0 if lg > 0 else 50.0)
-        if 25 <= rsi < 30: raw += 20; signals.append(f"RSI °ú¸Åµµ¹Ýµî({rsi})")
-        elif 30 <= rsi <= 40: raw += 15; signals.append(f"RSI ¹Ýµî±¸°£({rsi})")
-        elif rsi > 75: raw -= 15; signals.append(f"RSI °ú¿­({rsi})")
+        if 25 <= rsi < 30: raw += 20; signals.append(f"RSI ï¿½ï¿½ï¿½Åµï¿½ï¿½Ýµï¿½({rsi})")
+        elif 30 <= rsi <= 40: raw += 15; signals.append(f"RSI ï¿½Ýµî±¸ï¿½ï¿½({rsi})")
+        elif rsi > 75: raw -= 15; signals.append(f"RSI ï¿½ï¿½ï¿½ï¿½({rsi})")
         if len(c) >= 35:
             macd = c.ewm(span=12).mean() - c.ewm(span=26).mean()
             sig = macd.ewm(span=9).mean()
             hist = macd - sig
             if len(hist) >= 3:
                 h1,h2,h3 = float(hist.iloc[-3]),float(hist.iloc[-2]),float(hist.iloc[-1])
-                if h2 <= 0 and h3 > 0: raw += 20; signals.append("MACD °ñµçÅ©·Î½º")
-                elif h1 < h2 < 0 and h3 > h2: raw += 12; signals.append("MACD ¹ÝÀüÁß")
-                elif h2 >= 0 and h3 < 0: raw -= 15; signals.append("MACD µ¥µåÅ©·Î½º")
+                if h2 <= 0 and h3 > 0: raw += 20; signals.append("MACD ï¿½ï¿½ï¿½Å©ï¿½Î½ï¿½")
+                elif h1 < h2 < 0 and h3 > h2: raw += 12; signals.append("MACD ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")
+                elif h2 >= 0 and h3 < 0: raw -= 15; signals.append("MACD ï¿½ï¿½ï¿½ï¿½Å©ï¿½Î½ï¿½")
         vol_ratio = 1.0
         if len(v) >= 21:
             avg_v = float(v.rolling(20).mean().iloc[-1])
             vol_ratio = round(float(v.iloc[-1])/avg_v, 2) if avg_v > 0 else 1.0
-            if vol_ratio >= 2.0 and abs(chg) < 2: raw += 18; signals.append(f"°Å·¡·®±ÞÁõ({vol_ratio}x)")
-            elif vol_ratio >= 1.5: raw += 8; signals.append(f"°Å·¡·®Áõ°¡({vol_ratio}x)")
+            if vol_ratio >= 2.0 and abs(chg) < 2: raw += 18; signals.append(f"ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½({vol_ratio}x)")
+            elif vol_ratio >= 1.5: raw += 8; signals.append(f"ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½({vol_ratio}x)")
         ma5 = round(float(c.rolling(5).mean().iloc[-1]), 2) if len(c) >= 5 else price
         ma20 = round(float(c.rolling(20).mean().iloc[-1]), 2) if len(c) >= 20 else price
-        if price > ma5 > ma20: raw += 12; signals.append("Á¤¹è¿­")
-        elif price < ma5 < ma20: raw -= 10; signals.append("¿ª¹è¿­")
+        if price > ma5 > ma20: raw += 12; signals.append("ï¿½ï¿½ï¿½è¿­")
+        elif price < ma5 < ma20: raw -= 10; signals.append("ï¿½ï¿½ï¿½è¿­")
         if len(c) >= 20:
             bm = float(c.rolling(20).mean().iloc[-1])
             bs = float(c.rolling(20).std().iloc[-1])
-            if price <= bm - 2*bs: raw += 12; signals.append("º¼¸°ÀúÇÏ´Ü ¹Ýµî±â´ë")
+            if price <= bm - 2*bs: raw += 12; signals.append("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ýµï¿½ï¿½ï¿½")
         if len(c) >= 5:
             recent = c.tail(5).pct_change().dropna()
             dd = sum(1 for x in recent if x < 0)
-            if dd >= 3 and chg > 0: raw += 15; signals.append(f"{dd}ÀÏÇÏ¶ôÈÄ¹Ýµî")
-            elif dd >= 4: raw += 8; signals.append(f"{dd}ÀÏ¿¬¼ÓÇÏ¶ô")
+            if dd >= 3 and chg > 0: raw += 15; signals.append(f"{dd}ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½Ä¹Ýµï¿½")
+            elif dd >= 4: raw += 8; signals.append(f"{dd}ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½")
         score = max(0, min(100, raw))
-        if score >= 70: grade, gk = "°­·Â¸Å¼ö", "strong_buy"
-        elif score >= 55: grade, gk = "¸Å¼ö", "buy"
-        elif score >= 40: grade, gk = "°ü½É", "watch"
-        elif score >= 25: grade, gk = "Áß¸³", "neutral"
-        else: grade, gk = "È¸ÇÇ", "avoid"
+        if score >= 70: grade, gk = "ï¿½ï¿½ï¿½Â¸Å¼ï¿½", "strong_buy"
+        elif score >= 55: grade, gk = "ï¿½Å¼ï¿½", "buy"
+        elif score >= 40: grade, gk = "ï¿½ï¿½ï¿½ï¿½", "watch"
+        elif score >= 25: grade, gk = "ï¿½ß¸ï¿½", "neutral"
+        else: grade, gk = "È¸ï¿½ï¿½", "avoid"
         return {"ticker":ticker,"price":price,"change_1d":chg,"score":score,"grade":grade,"grade_key":gk,"rsi":rsi,"volume_ratio":vol_ratio,"ma5":ma5,"ma20":ma20,"signals":signals}
     except Exception as e:
         log.error("[%s] %s", ticker, e); return None
@@ -108,10 +108,10 @@ def scan_all():
     data = {"analyzed_at":at,"total_scanned":len(ALL),"total_passed":len(results),"strong_buy":sb,"buy":bu,"watch":wa,"results":top}
     ts = datetime.now(KST).strftime("%Y-%m-%d_%H%M%S")
     (RESULT_DIR / f"{ts}.json").write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
-    lines = [f"<b>³»ÀÏ»ó½Â¿¹Ãø</b> {at}",""]
+    lines = [f"<b>ï¿½ï¿½ï¿½Ï»ï¿½Â¿ï¿½ï¿½ï¿½</b> {at}",""]
     for i,r in enumerate(top[:10],1):
         sig = " | ".join(r["signals"][:3])
-        lines.append(f'{i}. <b>{r["ticker"]}</b> {r["grade"]} {r["score"]}Á¡ | \ ({r["change_1d"]:+.1f}%)\n  {sig}')
+        lines.append(f'{i}. <b>{r["ticker"]}</b> {r["grade"]} {r["score"]}ï¿½ï¿½ | \ ({r["change_1d"]:+.1f}%)\n  {sig}')
     send_telegram("\n".join(lines))
     log.info("=== done: %d sb:%d bu:%d wa:%d ===", len(results), sb, bu, wa)
     return data
