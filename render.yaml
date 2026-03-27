@@ -1,0 +1,9 @@
+﻿services:
+  - type: web
+    name: day_bot
+    runtime: python
+    buildCommand: pip3 install -r requirements.txt
+    startCommand: python3 app.py
+    envVars:
+      - key: PORT
+        value: 10000
