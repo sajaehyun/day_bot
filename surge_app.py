@@ -37,12 +37,13 @@ def _run_and_cache(session=None):
         with _lock:
             _surge_cache["status"] = "error"
 
-@surge_bp.route("/surge")
-def surge_dashboard():
-    with _lock:
-        data = dict(_surge_cache)
-    data["current_session"] = SESSION_LABEL.get(get_market_session(), "")
-    return render_template("surge_dashboard.html", **data)
+_surge_cache = {
+    "results": [],
+    "last_updated": None,
+    "status": "idle",
+    "session": "closed",
+    "session_label": SESSION_LABEL.get("closed", "")
+}
 
 @surge_bp.route("/surge/refresh", methods=["POST"])
 def surge_refresh():
