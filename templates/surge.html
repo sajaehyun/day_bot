@@ -73,11 +73,12 @@
 
 <div class="controls">
   <button class="btn btn-auto"  id="refreshBtn" onclick="startScan(null)">🔍 자동 감지</button>
-  <button class="btn btn-night" onclick="startScan('night')">🌙 야간거래</button>
   <button class="btn btn-pre"   onclick="startScan('pre')">🌅 프리마켓</button>
-  <button class="btn btn-day"   onclick="startScan('day')">📈 데이마켓</button>
+  <button class="btn btn-day"   onclick="startScan('day')">📈 정규장</button>
   <button class="btn btn-after" onclick="startScan('after')">🌙 애프터마켓</button>
+  <button class="btn btn-day"   onclick="startScan('daytrade')">📊 주간거래</button>
 </div>
+
 
 <div class="status-bar" id="statusBar">
   {% if last_updated %}

@@ -65,17 +65,30 @@ def surge_page():
         session_label=data["session_label"],
         current_session=data["session_label"]
     )
-
 def init_surge_scheduler():
-    scheduler = BackgroundScheduler(timezone="America/New_York")
-    scheduler.add_job(_run_and_cache, "cron", hour=7, minute=0,
+    scheduler = BackgroundScheduler(timezone="Asia/Seoul")
+
+    scheduler.add_job(_run_and_cache, "cron",
+                      hour=17, minute=0,
+                      day_of_week="mon-fri",
                       id="surge_pre", args=["pre"])
-    scheduler.add_job(_run_and_cache, "cron", hour=9, minute=35,
+
+    scheduler.add_job(_run_and_cache, "cron",
+                      hour=22, minute=35,
+                      day_of_week="mon-fri",
                       id="surge_day_open", args=["day"])
-    scheduler.add_job(_run_and_cache, "cron", hour=13, minute=0,
-                      id="surge_day_mid", args=["day"])
-    scheduler.add_job(_run_and_cache, "cron", hour=16, minute=5,
+
+    scheduler.add_job(_run_and_cache, "cron",
+                      hour=5, minute=5,
+                      day_of_week="tue-sat",
                       id="surge_after", args=["after"])
+
+    scheduler.add_job(_run_and_cache, "cron",
+                      hour=10, minute=0,
+                      day_of_week="mon-fri",
+                      id="surge_daytrade", args=["daytrade"])
+
     scheduler.start()
-    log.info("Surge 스케줄러 시작: 프리/데이/애프터 자동 실행")
+    log.info("Surge 스케줄러 시작 (KST 기준)")
     return scheduler
+
