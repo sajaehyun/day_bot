@@ -234,6 +234,7 @@ def send_telegram_surge_alert(results, token, chat_id, session="day"):
         msg = "\n".join(lines)
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     requests.post(url, json={"chat_id": chat_id, "text": msg}, timeout=10)
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def run_surge_scan(session=None):
     if session is None:
@@ -243,16 +244,30 @@ def run_surge_scan(session=None):
     results = []
     total = len(symbols)
     log.info(f"[{SESSION_LABEL[session]}] 스캔 시작: {total}개")
-    for i, sym in enumerate(symbols):
+
+    def process(sym):
         data = get_market_data(sym, session)
         if data and abs(data["change_pct"]) >= filters["change"] and data["vol_ratio"] >= filters["vol"]:
             data["direction"] = "급등 🚀" if data["change_pct"] > 0 else "급락 📉"
             data["score"] = compute_surge_score(data)
-            results.append(data)
             log.info(f"{data['direction']} {sym} {data['change_pct']:+.2f}% 거래량{data['vol_ratio']}배 점수{data['score']}")
-        if (i + 1) % 50 == 0:
-            log.info(f"진행: {i+1}/{total}")
-        time.sleep(0.05)
+            return data
+        return None
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(process, sym): sym for sym in symbols}
+        done = 0
+        for future in as_completed(futures):
+            done += 1
+            if done % 30 == 0:
+                log.info(f"진행: {done}/{total}")
+            try:
+                r = future.result()
+                if r:
+                    results.append(r)
+            except Exception as e:
+                log.debug(f"오류: {e}")
+
     results.sort(key=lambda x: x["score"], reverse=True)
     log.info(f"스캔 완료: {len(results)}개 감지")
     return results[:20], session
