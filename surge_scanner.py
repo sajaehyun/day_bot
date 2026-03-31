@@ -108,8 +108,13 @@ def get_market_data(symbol, session):
         elif session == "after":
             cur_price = (full_info.get("postMarketPrice")
                          or full_info.get("regularMarketPrice"))
+          elif session == "daytrade":
+            # 주간거래: 애프터 가격 우선, 없으면 정규장 가격
+            cur_price = (full_info.get("postMarketPrice")
+                         or full_info.get("regularMarketPrice")
+                         or full_info.get("currentPrice"))
         else:
-            # daytrade, closed 는 regularMarketPrice (가장 최근 종가)
+            # closed
             cur_price = (full_info.get("regularMarketPrice")
                          or full_info.get("currentPrice"))
 
